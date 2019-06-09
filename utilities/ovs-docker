@@ -78,12 +78,20 @@ add_port () {
                 ADDRESS=`expr X"$1" : 'X[^=]*=\(.*\)'`
                 shift
                 ;;
+            --ipaddress6=*)
+                ADDRESS6=`expr X"$1" : 'X[^=]*=\(.*\)'`
+                shift
+                ;;
             --macaddress=*)
                 MACADDRESS=`expr X"$1" : 'X[^=]*=\(.*\)'`
                 shift
                 ;;
             --gateway=*)
                 GATEWAY=`expr X"$1" : 'X[^=]*=\(.*\)'`
+                shift
+                ;;
+            --gateway6=*)
+                GATEWAY6=`expr X"$1" : 'X[^=]*=\(.*\)'`
                 shift
                 ;;
             --mtu=*)
@@ -149,12 +157,20 @@ add_port () {
         ip netns exec "$PID" ip addr add "$ADDRESS" dev "$INTERFACE"
     fi
 
+    if [ -n "$ADDRESS6" ]; then
+        ip netns exec "$PID" ip -6 addr add "$ADDRESS6" dev "$INTERFACE"
+    fi
+
     if [ -n "$MACADDRESS" ]; then
         ip netns exec "$PID" ip link set dev "$INTERFACE" address "$MACADDRESS"
     fi
 
     if [ -n "$GATEWAY" ]; then
         ip netns exec "$PID" ip route add default via "$GATEWAY"
+    fi
+
+    if [ -n "$GATEWAY6" ]; then
+        ip netns exec "$PID" ip -6 route add default via "$GATEWAY"
     fi
 }
 
@@ -222,8 +238,8 @@ ${UTIL}: Performs integration of Open vSwitch with Docker.
 usage: ${UTIL} COMMAND
 
 Commands:
-  add-port BRIDGE INTERFACE CONTAINER [--ipaddress="ADDRESS"]
-                    [--gateway=GATEWAY] [--macaddress="MACADDRESS"]
+  add-port BRIDGE INTERFACE CONTAINER [--ipaddress="ADDRESS"] [--ipaddress6="ADDRESS6"]
+                    [--gateway=GATEWAY] [--gateway6=GATEWAY6] [--macaddress="MACADDRESS"]
                     [--mtu=MTU]
                     Adds INTERFACE inside CONTAINER and connects it as a port
                     in Open vSwitch BRIDGE. Optionally, sets ADDRESS on
